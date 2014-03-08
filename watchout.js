@@ -1,11 +1,11 @@
 // start slingin' some d3 here.
 var svg = d3.select(".container").append("svg");
 var board = {
-  "height": 800,
-  "width": 800,
-  "paddingX": 200,
-  "paddingY": 50,
-  "enemies": 50
+  "height":650,
+  "width": 1000,
+  "paddingX": 100,
+  "paddingY": 25,
+  "enemies": 5
 };
 var makeHero = function(){
   svg.selectAll("rect")
@@ -54,20 +54,48 @@ var drag = d3.behavior.drag()
     .attr("x", function() { return d3.mouse(this)[0] } )
     .attr("y", function() { return d3.mouse(this)[1] } )
   })
-board.enemies = prompt("How many enemies should there be?");
+
+var collisionCheck = function () {
+  var heroX = parseFloat(d3.selectAll('rect').attr('x'));
+  var heroY = parseFloat(d3.selectAll('rect').attr('y'));
+  var enemies = d3.selectAll('circle');
+  enemies.each(function(d) {
+    var enemyX = parseFloat(d3.select(this).attr("cx"));
+    var enemyY = parseFloat(d3.select(this).attr("cy"));
+    var enemyR = parseFloat(d3.select(this).attr("r"));
+    if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < enemyR) {
+      onCollision();
+    }
+  })
+  setTimeout(function() {
+    collisionCheck();
+  }, 10)
+}
+
+var scoreboardCounter = function(){
+  var high = d3.select(".high").select("span");
+  var current = d3.select(".current").select("span").text();
+  current++;
+  d3.select(".current").select("span").text(current);
+  if(current > high.text()){
+    high.text(current);
+  }
+  setTimeout(function() {
+    scoreboardCounter()
+  }, 25)
+}
+
+var onCollision = function() {
+  var totalCollisions = d3.select(".collisions").select("span").text();
+  totalCollisions++;
+  d3.select(".collisions").select("span").text(totalCollisions);
+  d3.select(".current").select("span").text(0);
+}
+// board.enemies = prompt("How many enemies should there be?");
 makeEnemies(board.enemies);
 moveEnemies();
 makeHero();
 svg.selectAll('rect').call(drag);
-/*
-var collisions = function () {
-  var heroX = d3.selectAll('rect').attr('x');
-  var heroY = d3.selectAll('rect').attr('y');
-  vard3.selectAll('circle').attr('cx');
-  enemies[0].each(enemy)
-
-  //enemies[0][i].getAttributes('cx'); cx for ith enemy
-}
-*/
-
+collisionCheck()
+scoreboardCounter();
 
