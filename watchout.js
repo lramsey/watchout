@@ -5,7 +5,7 @@ var board = {
   "width": 1000,
   "paddingX": 100,
   "paddingY": 25,
-  "enemies": 5
+  "enemies": 14
 };
 var makeHero = function(){
   svg.selectAll("rect")
@@ -59,17 +59,25 @@ var collisionCheck = function () {
   var heroX = parseFloat(d3.selectAll('rect').attr('x'));
   var heroY = parseFloat(d3.selectAll('rect').attr('y'));
   var enemies = d3.selectAll('circle');
+  var didCollide = false;
   enemies.each(function(d) {
     var enemyX = parseFloat(d3.select(this).attr("cx"));
     var enemyY = parseFloat(d3.select(this).attr("cy"));
     var enemyR = parseFloat(d3.select(this).attr("r"));
     if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < enemyR) {
       onCollision();
+
+      setTimeout(function() {
+        collisionCheck();
+      }, 1000)
+      didCollide = true;
     }
   })
-  setTimeout(function() {
-    collisionCheck();
-  }, 10)
+  if (!didCollide) {
+    setTimeout(function() {
+      collisionCheck();
+    }, 10)
+  }
 }
 
 var scoreboardCounter = function(){
