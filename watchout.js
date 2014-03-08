@@ -5,7 +5,7 @@ var board = {
   "width": 800,
   "paddingX": 400,
   "paddingY": 200,
-  "enemies": 20
+  "enemies": 14
 };
 var makeHero = function(){
   svg.selectAll("rect")
@@ -48,6 +48,27 @@ var moveEnemies = function() {
   setTimeout(function() { moveEnemies() }, 1500);
 }
 
+var drag = d3.behavior.drag()
+ .on("drag", function() {
+    svg.selectAll('rect')
+    .attr("x", function() { return d3.mouse(this)[0] } )
+    .attr("y", function() { return d3.mouse(this)[1] } )
+  })
+
 makeEnemies(board.enemies);
 moveEnemies();
 makeHero();
+svg.selectAll('rect').call(drag);
+
+var collisions = function () {
+  var heroX = d3.selectAll('rect').attr('x');
+  var heroY = d3.selectAll('rect').attr('y');
+  var enemies = d3.selectAll('circle');
+  enemies[0].each(enemy)
+
+  //enemies[0][i].getAttributes('cx'); cx for ith enemy
+}
+
+
+
+
