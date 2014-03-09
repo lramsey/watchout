@@ -6,10 +6,12 @@ var board = {
   "enemies": 14
 };
 var makeHero = function(){
-  svg.selectAll("rect")
-    .data([15])
+  svg.selectAll("image.hero")
+    .data([25])
     .enter()
-    .append('rect')
+    .append('svg:image')
+    .attr("class", "hero")
+    .attr("xlink:href","hero.png")
     .attr("x", board.width/2)
     .attr("y", board.height/2)
     .attr("width", function(d) { return d })
@@ -22,11 +24,12 @@ var makeEnemies = function (num) {
   for (var i = 0; i < num; i++) {
     enemies.push(i);
   }
-  svg.selectAll("circle")
+  svg.selectAll("image.enemy")
     .data(enemies)
     .enter()
-    .append("circle")
+    .append("svg:image")
     .attr("class", "enemy")
+    .attr("")
     .attr("r", function(d) { return Math.random() * 100/num + 10 })
     .attr("cx", function() { return Math.random() * board.width })
     .attr("cy", function() { return Math.random() * board.height })
@@ -36,7 +39,7 @@ var makeEnemies = function (num) {
 };
 
 var moveEnemies = function() {
-  svg.selectAll("circle").transition()
+  svg.selectAll("image.enemy").transition()
   .duration(1700)
   .attr("cx", function() { return Math.random() * board.width })
   .attr("cy", function() { return Math.random() * board.height })
@@ -49,26 +52,24 @@ var moveEnemies = function() {
 
 var drag = d3.behavior.drag()
  .on("drag", function() {
-    svg.selectAll('rect')
+    svg.selectAll('image.hero')
     .attr("x", function() { return d3.mouse(this)[0] } )
     .attr("y", function() { return d3.mouse(this)[1] } )
   })
 
 var collisionCheck = function () {
-  var heroX = parseFloat(d3.selectAll('rect').attr('x'));
-  var heroY = parseFloat(d3.selectAll('rect').attr('y'));
-  var enemies = d3.selectAll('circle');
+  var heroX = d3.selectAll('image.hero').attr('x');
+  var heroY = d3.selectAll('image.hero').attr('y');
+  var enemies = d3.selectAll('image.enemy');
   var didCollide = false;
-  enemies.each(function(d) {
-    var enemyX = parseFloat(d3.select(this).attr("cx"));
-    var enemyY = parseFloat(d3.select(this).attr("cy"));
-    var enemyR = parseFloat(d3.select(this).attr("r"));
-    if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < enemyR) {
+  enemies.each(function() {
+    var enemyX = d3.select(this).attr("cx");
+    var enemyY = d3.select(this).attr("cy");
+    var enemyR = parseInt(d3.select(this).attr("r"));
+    if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < enemyR + 100) {
       onCollision();
 
-      setTimeout(function() {
-        collisionCheck();
-      }, 1000)
+      setTimeout(function() { collisionCheck(); }, 1000);
       didCollide = true;
       return;
     }
@@ -88,9 +89,6 @@ var scoreboardCounter = function(){
   if(current > high.text()){
     high.text(current);
   }
-  setTimeout(function() {
-    scoreboardCounter()
-  }, 25)
 }
 
 var onCollision = function() {
@@ -101,9 +99,9 @@ var onCollision = function() {
 }
 board.enemies = prompt("How many enemies should there be?");
 makeEnemies(board.enemies);
-moveEnemies();
+//moveEnemies();
 makeHero();
-svg.selectAll('rect').call(drag);
+svg.selectAll('image.hero').call(drag);
 collisionCheck()
-scoreboardCounter();
+d3.timer(scoreboardCounter, 25);
 
