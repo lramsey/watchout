@@ -11,7 +11,7 @@ var board = {
 };
 var makeHero = function(){
   svg.selectAll("image.hero")
-    .data([board.heroMinLength + board.heroVariableLength/board.enemiesCount])
+    .data([board.heroMinLength + board.heroVariableLength/(Math.log(board.enemiesCount + 1))])
     .enter()
     .append('svg:image')
     .attr("class", "hero")
@@ -25,7 +25,7 @@ var makeHero = function(){
 var makeEnemies = function () {
   var enemies = [];
   for (var i = 0; i < board.enemiesCount; i++) {
-    enemies.push(board.enemiesVariableLength/board.enemiesCount);
+    enemies.push(board.enemiesVariableLength/(2*Math.log(board.enemiesCount +1)));
   }
   svg.selectAll("image.enemy")
     .data(enemies)
@@ -39,17 +39,14 @@ var makeEnemies = function () {
     .attr("y", function() { return Math.random() * board.height; });
 };
 
-var moveEnemies = function() {
-  svg.selectAll("image.enemy").transition()
-  .duration(1700)
+var moveEnemies = function(enemy) {
+  enemy.transition()
+  .duration(1700).delay(Math.random()*1000)
   .attr("x", function() { return Math.random() * board.width; })
   .attr("y", function() { return Math.random() * board.height; })
-  .attr("fill", function() {
-    return "hsl(" + Math.random() * 360 + ",100%,50%)";
-  })
   .attr("width", function(d) { return Math.random() * d + board.enemiesMinLength;})
   .attr("height", function(d) { return Math.random() * d + board.enemiesMinLength; });
-  setTimeout(function() { moveEnemies(); }, 1500);
+  setTimeout(function() { moveEnemies(enemy); }, 1500);
 };
 
 var drag = d3.behavior.drag()
@@ -105,13 +102,15 @@ var onCollision = function() {
 
 userInput = parseFloat(prompt("How many enemies should there be?"));
 
-if(!isNaN(userInput) && userInput%1 === 0 && userInput > 0 && userInput < 500){
+if(!isNaN(userInput) && userInput%1 === 0 && userInput > 0 && userInput <= 500){
   board.enemiesCount = userInput;
 } else{
   alert("That is not a valid enemy count. Let's try " + board.enemiesCount + ".");
 }
 makeEnemies();
-moveEnemies();
+d3.selectAll("image.enemy").each(function(){
+  moveEnemies(d3.select(this));
+});
 makeHero();
 svg.selectAll('image.hero').call(drag);
 collisionCheck();
