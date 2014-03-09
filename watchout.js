@@ -1,10 +1,8 @@
 // start slingin' some d3 here.
 var svg = d3.select(".container").append("svg");
 var board = {
-  "height":650,
-  "width": 1000,
-  "paddingX": 100,
-  "paddingY": 25,
+  "height":window.innerHeight,
+  "width": window.innerWidth,
   "enemies": 14
 };
 var makeHero = function(){
@@ -12,8 +10,8 @@ var makeHero = function(){
     .data([15])
     .enter()
     .append('rect')
-    .attr("x", board.paddingX + board.width/2)
-    .attr("y", board.paddingY + board.height/2)
+    .attr("x", board.width/2)
+    .attr("y", board.height/2)
     .attr("width", function(d) { return d })
     .attr("height", function(d) { return d })
     .attr("fill", "white")
@@ -28,9 +26,10 @@ var makeEnemies = function (num) {
     .data(enemies)
     .enter()
     .append("circle")
+    .attr("class", "enemy")
     .attr("r", function(d) { return Math.random() * 100/num + 10 })
-    .attr("cx", function() { return Math.random() * board.width + board.paddingX })
-    .attr("cy", function() { return Math.random() * board.height + board.paddingY})
+    .attr("cx", function() { return Math.random() * board.width })
+    .attr("cy", function() { return Math.random() * board.height })
     .attr("fill", function() {
       return "hsl(" + Math.random() * 360 + ",100%,50%)";
     })
@@ -39,8 +38,8 @@ var makeEnemies = function (num) {
 var moveEnemies = function() {
   svg.selectAll("circle").transition()
   .duration(1700)
-  .attr("cx", function() { return Math.random() * board.width + board.paddingX })
-  .attr("cy", function() { return Math.random() * board.height + board.paddingY})
+  .attr("cx", function() { return Math.random() * board.width })
+  .attr("cy", function() { return Math.random() * board.height })
   .attr("fill", function() {
     return "hsl(" + Math.random() * 360 + ",100%,50%)";
   })
@@ -71,12 +70,13 @@ var collisionCheck = function () {
         collisionCheck();
       }, 1000)
       didCollide = true;
+      return;
     }
   })
   if (!didCollide) {
     setTimeout(function() {
       collisionCheck();
-    }, 10)
+    }, 20)
   }
 }
 
@@ -99,7 +99,7 @@ var onCollision = function() {
   d3.select(".collisions").select("span").text(totalCollisions);
   d3.select(".current").select("span").text(0);
 }
-// board.enemies = prompt("How many enemies should there be?");
+board.enemies = prompt("How many enemies should there be?");
 makeEnemies(board.enemies);
 moveEnemies();
 makeHero();
