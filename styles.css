@@ -2,12 +2,26 @@
 
 /* Note: an asteroid image is included in this repo. 
 Feel free to use it if you like. */
-
+html, body {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+}
 body {
   /*background-color: black;*/
   background: url('space_background.jpg');
 }
 
 .scoreboard {
+  position: absolute;
+  top: 20px;
+  left: 20px;
   color: white;
+}
+
+circle.enemy {
+  background-image: url(enemy.gif);
+  height:50px;
+  width:50px;
 }

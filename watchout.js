@@ -1,70 +1,118 @@
 // start slingin' some d3 here.
 var svg = d3.select(".container").append("svg");
 var board = {
-  "height": 600,
-  "width": 800,
-  "paddingX": 400,
-  "paddingY": 200,
-  "enemies": 14
+  "height":window.innerHeight,
+  "width": window.innerWidth,
+  "enemiesCount": 14,
+  "enemiesVariableLength": 250,
+  "enemiesMinLength": 50,
+  "heroLength": 50
 };
 var makeHero = function(){
-  svg.selectAll("rect")
-    .data([15])
+  svg.selectAll("image.hero")
+    .data([board.heroLength])
     .enter()
-    .append('rect')
-    .attr("x", board.paddingX + board.width/2)
-    .attr("y", board.paddingY + board.height/2)
+    .append('svg:image')
+    .attr("class", "hero")
+    .attr("xlink:href","hero.png")
+    .attr("x", board.width/2)
+    .attr("y", board.height/2)
     .attr("width", function(d) { return d; })
-    .attr("height", function(d) { return d; })
-    .style("fill", "white");
+    .attr("height", function(d) { return d; });
 };
 
-var makeEnemies = function (num) {
+var makeEnemies = function () {
   var enemies = [];
-  for (var i = 0; i < num; i++) {
-    enemies.push(i);
+  for (var i = 0; i < board.enemiesCount; i++) {
+    enemies.push(board.enemiesVariableLength);
   }
-  svg.selectAll("circle")
+  svg.selectAll("image.enemy")
     .data(enemies)
     .enter()
-    .append("circle")
-    .attr("r", function(d) { return Math.random() * 100/num + 10; })
-    .attr("cx", function() { return Math.random() * board.width + 400; })
-    .attr("cy", function() { return Math.random() * board.height + 200;})
-    .style("fill", function() {
+    .append("svg:image")
+    .attr("class", "enemy")
+    .attr("xlink:href","enemy.gif")
+    .attr("width", function(d) { return Math.random(d) * d/board.enemiesCount + board.enemiesMinLength; })
+    .attr("height", function(d) { return Math.random(d) * d/board.enemiesCount + board.enemiesMinLength; })
+    .attr("x", function() { return Math.random() * board.width; })
+    .attr("y", function() { return Math.random() * board.height; })
+    .attr("fill", function() {
       return "hsl(" + Math.random() * 360 + ",100%,50%)";
     });
 };
 
 var moveEnemies = function() {
-  svg.selectAll("circle").transition()
+  svg.selectAll("image.enemy").transition()
   .duration(1700)
-  .attr("cx", function() { return Math.random() * board.width + 400; })
-  .attr("cy", function() { return Math.random() * board.height + 200;})
-  .style("fill", function() {
+  .attr("x", function() { return Math.random() * board.width; })
+  .attr("y", function() { return Math.random() * board.height; })
+  .attr("fill", function() {
     return "hsl(" + Math.random() * 360 + ",100%,50%)";
   })
-  .attr("r", function(d) { return Math.random() * 120/board.enemies + 10;});
+  .attr("width", function(d) { return Math.random() * d/board.enemiesCount + board.enemiesMinLength;})
+  .attr("height", function(d) { return Math.random() * d/board.enemiesCount + board.enemiesMinLength; });
   setTimeout(function() { moveEnemies(); }, 1500);
 };
 
 var drag = d3.behavior.drag()
  .on("drag", function() {
-    svg.selectAll('rect')
+    svg.selectAll('image.hero')
     .attr("x", function() { return d3.mouse(this)[0]; } )
     .attr("y", function() { return d3.mouse(this)[1]; } );
   });
 
-makeEnemies(board.enemies);
+var collisionCheck = function () {
+  var heroX = d3.selectAll('image.hero').attr('x');
+  var heroY = d3.selectAll('image.hero').attr('y');
+  var heroR = board.heroLength/2;
+  var enemies = d3.selectAll('image.enemy');
+  var didCollide = false;
+  enemies.each(function() {
+    var enemyX = d3.select(this).attr("x");
+    var enemyY = d3.select(this).attr("y");
+    var enemyR = parseFloat(d3.select(this).attr("height"))/2;
+    if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < heroR + enemyR) {
+      onCollision();
+
+      setTimeout(function() { collisionCheck(); }, 1000);
+      didCollide = true;
+      return;
+    }
+  });
+  if (!didCollide) {
+    setTimeout(function() {
+      collisionCheck();
+    }, 20);
+  }
+};
+
+var scoreboardCounter = function(){
+  var high = d3.select(".high").select("span");
+  var current = d3.select(".current").select("span").text();
+  current++;
+  d3.select(".current").select("span").text(current);
+  if(current > high.text()){
+    high.text(current);
+  }
+};
+
+var onCollision = function() {
+  var totalCollisions = d3.select(".collisions").select("span").text();
+  totalCollisions++;
+  d3.select(".collisions").select("span").text(totalCollisions);
+  d3.select(".current").select("span").text(0);
+};
+
+userInput = parseFloat(prompt("How many enemies should there be?"));
+
+if(!isNaN(userInput) && userInput%1 === 0 && userInput > 0 && userInput < 500){
+  board.enemiesCount = userInput;
+} else{
+  alert("That is not a valid enemy count. Let's try " + board.enemiesCount + ".");
+}
+makeEnemies();
 moveEnemies();
 makeHero();
-svg.selectAll('rect').call(drag);
-
-var collisions = function () {
-  var heroX = d3.selectAll('rect').attr('x');
-  var heroY = d3.selectAll('rect').attr('y');
-  var enemies = d3.selectAll('circle');
-  enemies[0].each(enemy);
-
-  //enemies[0][i].getAttributes('cx'); cx for ith enemy
-};
+svg.selectAll('image.hero').call(drag);
+collisionCheck();
+d3.timer(scoreboardCounter, 25);
