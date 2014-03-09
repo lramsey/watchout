@@ -4,13 +4,14 @@ var board = {
   "height":window.innerHeight,
   "width": window.innerWidth,
   "enemiesCount": 14,
-  "enemiesVariableLength": 250,
-  "enemiesMinLength": 50,
-  "heroLength": 50
+  "enemiesVariableLength": 500,
+  "enemiesMinLength": 20,
+  "heroVariableLength": 35,
+  "heroMinLength": 15
 };
 var makeHero = function(){
   svg.selectAll("image.hero")
-    .data([board.heroLength])
+    .data([board.heroMinLength + board.heroVariableLength/board.enemiesCount])
     .enter()
     .append('svg:image')
     .attr("class", "hero")
@@ -24,7 +25,7 @@ var makeHero = function(){
 var makeEnemies = function () {
   var enemies = [];
   for (var i = 0; i < board.enemiesCount; i++) {
-    enemies.push(board.enemiesVariableLength);
+    enemies.push(board.enemiesVariableLength/board.enemiesCount);
   }
   svg.selectAll("image.enemy")
     .data(enemies)
@@ -32,13 +33,10 @@ var makeEnemies = function () {
     .append("svg:image")
     .attr("class", "enemy")
     .attr("xlink:href","enemy.gif")
-    .attr("width", function(d) { return Math.random(d) * d/board.enemiesCount + board.enemiesMinLength; })
-    .attr("height", function(d) { return Math.random(d) * d/board.enemiesCount + board.enemiesMinLength; })
+    .attr("width", function(d) { return Math.random() * d +  board.enemiesMinLength; })
+    .attr("height", function(d) { return Math.random() * d + board.enemiesMinLength; })
     .attr("x", function() { return Math.random() * board.width; })
-    .attr("y", function() { return Math.random() * board.height; })
-    .attr("fill", function() {
-      return "hsl(" + Math.random() * 360 + ",100%,50%)";
-    });
+    .attr("y", function() { return Math.random() * board.height; });
 };
 
 var moveEnemies = function() {
@@ -49,8 +47,8 @@ var moveEnemies = function() {
   .attr("fill", function() {
     return "hsl(" + Math.random() * 360 + ",100%,50%)";
   })
-  .attr("width", function(d) { return Math.random() * d/board.enemiesCount + board.enemiesMinLength;})
-  .attr("height", function(d) { return Math.random() * d/board.enemiesCount + board.enemiesMinLength; });
+  .attr("width", function(d) { return Math.random() * d + board.enemiesMinLength;})
+  .attr("height", function(d) { return Math.random() * d + board.enemiesMinLength; });
   setTimeout(function() { moveEnemies(); }, 1500);
 };
 
@@ -60,26 +58,28 @@ var drag = d3.behavior.drag()
     .attr("x", function() { return d3.mouse(this)[0]; } )
     .attr("y", function() { return d3.mouse(this)[1]; } );
   });
-
+var i = 0;
 var collisionCheck = function () {
-  var heroX = d3.selectAll('image.hero').attr('x');
-  var heroY = d3.selectAll('image.hero').attr('y');
-  var heroR = board.heroLength/2;
+  var heroR = parseFloat(d3.select('image.hero').datum())/2;
+  var heroX = parseFloat(d3.select('image.hero').attr('x')) + heroR;
+  var heroY = parseFloat(d3.select('image.hero').attr('y')) + heroR;
   var enemies = d3.selectAll('image.enemy');
   var didCollide = false;
   enemies.each(function() {
-    var enemyX = d3.select(this).attr("x");
-    var enemyY = d3.select(this).attr("y");
     var enemyR = parseFloat(d3.select(this).attr("height"))/2;
+    var enemyX = parseFloat(d3.select(this).attr("x")) + enemyR;
+    var enemyY = parseFloat(d3.select(this).attr("y")) + enemyR;
     if (Math.sqrt(Math.pow(heroX - enemyX, 2) + Math.pow(heroY - enemyY, 2)) < heroR + enemyR) {
-      onCollision();
-
-      setTimeout(function() { collisionCheck(); }, 1000);
       didCollide = true;
       return;
     }
   });
-  if (!didCollide) {
+  if(didCollide){
+    onCollision();
+    setTimeout(function() {
+      collisionCheck();
+    }, 1000);
+  } else {
     setTimeout(function() {
       collisionCheck();
     }, 20);
